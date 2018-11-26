@@ -123,6 +123,7 @@ def dict_factory(cursor, row):
 def getRateApi(dc,tc,getRateTime):
     try:
         parameters = {'curDate':getRateTime,'baseCurrency':dc,'transactionCurrency':tc}
+        # url = 'http://www.unionpayintl.com/cardholderServ/serviceCenter/rate/search'
         url = 'http://www.unionpayintl.com/cardholderServ/serviceCenter/rate/search'
         # post获取数据
         data = urllib.urlencode(parameters)
@@ -141,10 +142,17 @@ def getRateApi(dc,tc,getRateTime):
         return False
 
 def getYesterday(): 
-    today=datetime.date.today() 
-    oneday=datetime.timedelta(days=1) 
-    yesterday=today-oneday  
-    return yesterday
+    isWorkDay = datetime.datetime.now().weekday()
+    if isWorkDay == 0:
+        today=datetime.date.today()
+        oneday=datetime.timedelta(days=3)
+        yesterday=today-oneday
+        return yesterday
+    else:
+        today=datetime.date.today()
+        oneday=datetime.timedelta(days=1)
+        yesterday=today-oneday
+        return yesterday
 
 def main(wf):
     connSqlite()
@@ -164,7 +172,7 @@ def main(wf):
         getRateTime = updateTime
     else:
         getRateTime = getYesterday()
-
+    #print(getRateTime)
     try:
         # 币种缩写大写
         dc = inputData[1].upper()
@@ -177,6 +185,7 @@ def main(wf):
             # 判断数据库里的数据是否需要更新(5点35网站数据应该更新了)
             if updateTime > values['updatetime']:
                 rate = getRateApi(dc,tc,getRateTime)
+                
                 updateRate(rate['updateDate'], rate['baseCurrency'], rate['transactionCurrency'], rate['exchangeRate'])
 
                 values = getRate(dc,tc)
