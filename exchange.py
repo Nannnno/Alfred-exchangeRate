@@ -122,12 +122,20 @@ def dict_factory(cursor, row):
 # 从api获取汇率
 def getRateApi(dc,tc,getRateTime):
     try:
+
         parameters = {'curDate':getRateTime,'baseCurrency':dc,'transactionCurrency':tc}
         # url = 'http://www.unionpayintl.com/cardholderServ/serviceCenter/rate/search'
         url = 'http://www.unionpayintl.com/cardholderServ/serviceCenter/rate/search'
         # post获取数据
+        req_header = {'User-Agent':'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
+        'Accept':'text/html;q=0.9,*/*;q=0.8',
+        'Accept-Charset':'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+        'Accept-Encoding':'gzip',
+        'Connection':'close',
+        'Referer':None #注意如果依然不能抓取的话，这里可以设置抓取网站的host
+        }
         data = urllib.urlencode(parameters)
-        request = urllib2.Request(url, data)
+        request = urllib2.Request(url, data, req_header)
         response = urllib2.urlopen(request)
         page = response.read()
         res = json.loads(page)
@@ -166,7 +174,7 @@ def main(wf):
     # 今天的日期年月日
     updateTime = datetime.datetime.now().strftime('%Y-%m-%d')
     # 现在的时分秒
-    nowtime = datetime.datetime.now().strftime('%H-%i-%s')
+    nowtime = datetime.datetime.now().strftime('%H:%M:%S')
 
     if nowtime > '17:35:00':
         getRateTime = updateTime
@@ -174,10 +182,12 @@ def main(wf):
         getRateTime = getYesterday()
     #print(getRateTime)
     try:
+
         # 币种缩写大写
         dc = inputData[1].upper()
         tc = inputData[2].upper()
         dcMoney = inputData[0]
+        
 
         values = getRate(dc,tc)
 
